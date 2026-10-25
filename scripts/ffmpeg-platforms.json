@@ -1,0 +1,104 @@
+[
+  {
+    "build": "FFMPEG",
+    "name": "Alpine-aarch64",
+    "os": "ubuntu-24.04-arm",
+    "arch": "aarch64",
+    "build_ffmpeg_cuda_llvm": "OFF",
+    "generator": "Unix Makefiles",
+    "shell": "sh",
+    "container": "alpine:3.22"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Alpine-x86_64",
+    "os": "ubuntu-latest",
+    "arch": "x86_64",
+    "build_ffmpeg_cuda_llvm": "OFF",
+    "generator": "Unix Makefiles",
+    "shell": "sh",
+    "container": "alpine:3.22"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Darwin-arm64",
+    "os": "macos-14",
+    "arch": "aarch64",
+    "generator": "Unix Makefiles",
+    "shell": "bash",
+    "target": "arm64-apple-macosx"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Darwin-x86_64",
+    "os": "macos-15-intel",
+    "arch": "x86_64",
+    "generator": "Unix Makefiles",
+    "shell": "bash",
+    "target": "x86_64-apple-macosx"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "FreeBSD-aarch64",
+    "os": "ubuntu-latest",
+    "arch": "aarch64",
+    "bsd_release": "14.4",
+    "generator": "Unix Makefiles",
+    "shell": "freebsd {0}"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "FreeBSD-amd64",
+    "os": "ubuntu-latest",
+    "arch": "x86_64",
+    "bsd_release": "14.4",
+    "generator": "Unix Makefiles",
+    "shell": "freebsd {0}"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Linux-aarch64",
+    "os": "ubuntu-22.04",
+    "arch": "aarch64",
+    "generator": "Unix Makefiles",
+    "shell": "bash",
+    "target": "aarch64-linux-gnu"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Linux-ppc64le",
+    "os": "ubuntu-22.04",
+    "arch": "powerpc64le",
+    "generator": "Unix Makefiles",
+    "shell": "bash",
+    "target": "powerpc64le-linux-gnu"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Linux-x86_64",
+    "os": "ubuntu-22.04",
+    "arch": "x86_64",
+    "generator": "Unix Makefiles",
+    "shell": "bash"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Windows-AMD64",
+    "os": "windows-2022",
+    "arch": "x86_64",
+    "generator": "MSYS Makefiles",
+    "shell": "msys2 {0}",
+    "msystem": "ucrt64",
+    "toolchain": "ucrt-x86_64"
+  },
+  {
+    "build": "FFMPEG",
+    "name": "Windows-ARM64",
+    "os": "windows-11-arm",
+    "arch": "aarch64",
+    "generator": "MSYS Makefiles",
+    "shell": "msys2 {0}",
+    "msystem": "clangarm64",
+    "toolchain": "clang-aarch64"
+  }
+]

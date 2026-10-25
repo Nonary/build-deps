@@ -1,0 +1,8 @@
+eadd00804d5f7e5cd8c85d540073198312870776 third-party/FFmpeg/AMF
+fb216b5facde2c97cb0ce2e75fb3228aa5ac21fa third-party/FFmpeg/FFmpeg
+c04f951541ad600e0d9c10836f2ab7b9bc69816d third-party/FFmpeg/SVT-AV1
+015e25c3c91b70eb1a754d36fb14c4ba6ad9b0b9 third-party/FFmpeg/Vulkan-Headers
+ebc06b83174f6b5200eb21de3e83fc0d03ddcd18 third-party/FFmpeg/Vulkan-Loader
+e844e5b26f46bb77479f063029595293aa8f812d third-party/FFmpeg/nv-codec-headers
+b35605ace3ddf7c1a5d67a2eb553f034aef41d55 third-party/FFmpeg/x264
+1d117bed4747758b51bd2c124d738527e30392cb third-party/FFmpeg/x265_git

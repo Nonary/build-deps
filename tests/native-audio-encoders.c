@@ -16,7 +16,8 @@ static void encode(enum AVCodecID id, const char *name, int channels, int kbps) 
     ctx->sample_rate = 48000;
     ctx->sample_fmt = AV_SAMPLE_FMT_FLTP;
     ctx->bit_rate = kbps * 1000;
-    av_channel_layout_default(&ctx->ch_layout, channels);
+    CHECK(av_channel_layout_from_mask(&ctx->ch_layout,
+        channels == 2 ? AV_CH_LAYOUT_STEREO : AV_CH_LAYOUT_5POINT1_BACK) == 0);
     CHECK(avcodec_open2(ctx, codec, NULL) == 0);
     CHECK(ctx->frame_size == 1536);
     AVFrame *frame = av_frame_alloc();

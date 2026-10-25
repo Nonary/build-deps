@@ -6,15 +6,58 @@ platform=${2:?platform name required}
 mkdir -p build/verification
 exec > >(tee build/verification/audio-check.log) 2>&1
 
-git rev-parse HEAD > build/verification/source-commit.txt
-git submodule status --recursive > build/verification/submodule-commits.txt
+# Read checkout metadata without changing Git's ownership/trust configuration.
+# Container runners can own a checkout differently from the shell user.
+read_checkout_head() {
+    local metadata=$1 directory head common reference
+    if [ -f "$metadata" ]; then
+        directory=$(sed -n 's/^gitdir: //p' "$metadata" | tr -d '\r')
+        case "$directory" in
+            /*|?:/*) ;;
+            *) directory="$(dirname "$metadata")/$directory" ;;
+        esac
+    else
+        directory=$metadata
+    fi
+    head=$(tr -d '\r\n' < "$directory/HEAD")
+    case "$head" in
+        'ref: '*)
+            reference=${head#ref: }
+            common=$directory
+            if [ -f "$directory/commondir" ]; then
+                common="$directory/$(tr -d '\r\n' < "$directory/commondir")"
+            fi
+            if [ -f "$common/$reference" ]; then
+                head=$(tr -d '\r\n' < "$common/$reference")
+            else
+                head=$(awk -v ref="$reference" '$2 == ref {print $1}' "$common/packed-refs")
+            fi
+            ;;
+    esac
+    if ! [[ "$head" =~ ^[0-9a-f]{40}$ ]]; then
+        echo "Invalid checkout HEAD in $metadata" >&2
+        return 1
+    fi
+    printf '%s\n' "$head"
+}
+source_commit=$(read_checkout_head .git)
+test "$source_commit" = "${GITHUB_SHA:-$source_commit}"
+printf '%s\n' "$source_commit" > build/verification/source-commit.txt
+while read -r expected module; do
+    actual=$(read_checkout_head "$module/.git")
+    test "$actual" = "$expected"
+    printf '%s %s\n' "$actual" "$module"
+done < tests/ffmpeg-submodule-pins.txt > build/verification/submodule-commits.txt
 printf 'platform=%s\nrun_id=%s\nattempt=%s\n' "$platform" "${GITHUB_RUN_ID:-local}" "${GITHUB_RUN_ATTEMPT:-local}" > build/verification/build.txt
 cp build/FFmpeg/FFmpeg/ffbuild/config.mak build/verification/
 cp build/FFmpeg/FFmpeg/libavcodec/codec_list.c build/verification/
 
 library="$PWD/build/dist/ffmpeg/lib/libavcodec.a"
-"${CCPREFIX:-}ar" p "$library" allcodecs.o > build/verification/allcodecs.o
-"${CCPREFIX:-}nm" -u build/verification/allcodecs.o > build/verification/registrations.txt
+mkdir -p build/verification/registry
+# Native MinGW ar stdout is text-mode: use extraction, never binary redirection.
+(cd build/verification/registry && "${CCPREFIX:-}ar" x "$library" allcodecs.o)
+mv build/verification/registry/allcodecs.o build/verification/allcodecs.o
+"${CCPREFIX:-}nm" -u build/verification/allcodecs.o | tr -d '\r' > build/verification/registrations.txt
 grep -E 'ff_ac3_encoder$' build/verification/registrations.txt
 grep -E 'ff_eac3_encoder$' build/verification/registrations.txt
 for encoder in libx264 libx265 libsvtav1; do
