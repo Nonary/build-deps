@@ -1,0 +1,17 @@
+ff_ac3_encoder
+ff_av1_amf_encoder
+ff_av1_mf_encoder
+ff_av1_nvenc_encoder
+ff_av1_qsv_encoder
+ff_eac3_encoder
+ff_h264_amf_encoder
+ff_h264_mf_encoder
+ff_h264_nvenc_encoder
+ff_h264_qsv_encoder
+ff_hevc_amf_encoder
+ff_hevc_mf_encoder
+ff_hevc_nvenc_encoder
+ff_hevc_qsv_encoder
+ff_libsvtav1_encoder
+ff_libx264_encoder
+ff_libx265_encoder
