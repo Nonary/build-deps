@@ -9,13 +9,12 @@ on:
     branches:
       - maintainer/native-dolby
     paths:
-      - .github/workflows/maintenance-ffmpeg.yml
       - cmake/ffmpeg/**
-      - scripts/verify-ffmpeg-audio.sh
-      - scripts/ffmpeg-platforms.json
-      - tests/ffmpeg-submodule-pins.txt
-      - tests/native-audio-encoders.c
-      - tests/windows-amd64-encoders.txt
+      - CMakeLists.txt
+      - package-lock.cmake
+      - .gitmodules
+      - third-party/FFmpeg/**
+      - patches/FFmpeg/**
   workflow_dispatch:
     inputs:
       target_set:
@@ -525,10 +524,36 @@ jobs:
           ${{ env.MAKE_CMD }} -C build --jobs=${{ steps.processor_count.outputs.PROCESSOR_COUNT || 1 }}
 
       - name: Install
+        id: install
         run: |
           set -e
           cd "$GITHUB_WORKSPACE"
           ${{ env.MAKE_CMD }} -C build install
+
+      - name: Create Archives
+        if: ${{ !startsWith(matrix.shell, 'freebsd') }}
+        shell: bash
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE/build/dist"
+
+          test -f ffmpeg/lib/libavcodec.a
+          tar -czf "../../${{ matrix.name }}-ffmpeg.tar.gz" ffmpeg
+
+      - name: Record archive checksums
+        if: ${{ !startsWith(matrix.shell, 'freebsd') }}
+        shell: bash
+        run: cmake -E sha256sum "${{ matrix.name }}-ffmpeg.tar.gz" > "${{ matrix.name }}-ffmpeg.tar.gz.sha256"
+
+      - name: Retain unqualified build output
+        if: ${{ !startsWith(matrix.shell, 'freebsd') }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          if-no-files-found: error
+          name: ${{ matrix.name }}-candidate
+          path: |
+            ./${{ matrix.name }}-ffmpeg.tar.gz
+            ./${{ matrix.name }}-ffmpeg.tar.gz.sha256
 
       - name: Verify native audio encoders
         run: |
@@ -559,18 +584,14 @@ jobs:
           cat ./build/FFmpeg/FFmpeg/ffbuild/config.log || true
           echo "::endgroup::"
 
-      - name: Create Archives
+      - name: Archive qualified FreeBSD output
+        if: startsWith(matrix.shell, 'freebsd')
         shell: bash
         run: |
-          set -e
           cd "$GITHUB_WORKSPACE/build/dist"
-
-          test -f ffmpeg/lib/libavcodec.a
           tar -czf "../../${{ matrix.name }}-ffmpeg.tar.gz" ffmpeg
-
-      - name: Record archive checksums
-        shell: bash
-        run: cmake -E sha256sum "${{ matrix.name }}-ffmpeg.tar.gz" > "${{ matrix.name }}-ffmpeg.tar.gz.sha256"
+          cd "$GITHUB_WORKSPACE"
+          cmake -E sha256sum "${{ matrix.name }}-ffmpeg.tar.gz" > "${{ matrix.name }}-ffmpeg.tar.gz.sha256"
 
       - name: Upload verification evidence
         if: always()

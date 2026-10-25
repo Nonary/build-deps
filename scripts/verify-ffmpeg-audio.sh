@@ -43,11 +43,13 @@ read_checkout_head() {
 source_commit=$(read_checkout_head .git)
 test "$source_commit" = "${GITHUB_SHA:-$source_commit}"
 printf '%s\n' "$source_commit" > build/verification/source-commit.txt
+pins_text=$(tr -d '\r' < tests/ffmpeg-submodule-pins.txt)
+test -n "$pins_text"
 while read -r expected module; do
     actual=$(read_checkout_head "$module/.git")
     test "$actual" = "$expected"
     printf '%s %s\n' "$actual" "$module"
-done < tests/ffmpeg-submodule-pins.txt > build/verification/submodule-commits.txt
+done <<< "$pins_text" > build/verification/submodule-commits.txt
 printf 'platform=%s\nrun_id=%s\nattempt=%s\n' "$platform" "${GITHUB_RUN_ID:-local}" "${GITHUB_RUN_ATTEMPT:-local}" > build/verification/build.txt
 cp build/FFmpeg/FFmpeg/ffbuild/config.mak build/verification/
 cp build/FFmpeg/FFmpeg/libavcodec/codec_list.c build/verification/
@@ -65,7 +67,8 @@ for encoder in libx264 libx265 libsvtav1; do
 done
 if [ "$platform" = Windows-AMD64 ]; then
     awk '/_encoder$/ {print $NF}' build/verification/registrations.txt | sort > build/verification/encoder-names.txt
-    diff -u tests/windows-amd64-encoders.txt build/verification/encoder-names.txt
+    tr -d '\r' < tests/windows-amd64-encoders.txt > build/verification/expected-encoder-names.txt
+    diff -u build/verification/expected-encoder-names.txt build/verification/encoder-names.txt
 fi
 grep -E -- '--disable-all' build/verification/config.mak
 if grep -E -- '--enable-nonfree|--enable-encoders([[:space:]]|$)' build/verification/config.mak; then
@@ -80,8 +83,8 @@ fi
 
 export PKG_CONFIG_PATH="$PWD/build/FFmpeg/lib/pkgconfig:$PWD/build/dist/ffmpeg/lib/pkgconfig:$PWD/build/x264/lib/pkgconfig:$PWD/build/usr/local/lib/pkgconfig:$PWD/build/libva/lib/pkgconfig:$PWD/build/vulkan/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
 # Intentional splitting: pkg-config emits shell compiler/linker arguments.
-cflags_text=$(pkg-config --cflags libavcodec libavutil)
-ldflags_text=$(pkg-config --static --libs libavcodec libavutil)
+cflags_text=$(pkg-config --cflags libavcodec libavutil | tr -d '\r')
+ldflags_text=$(pkg-config --static --libs libavcodec libavutil | tr -d '\r')
 read -r -a cflags <<< "$cflags_text"
 read -r -a ldflags <<< "$ldflags_text"
 "${CC:-cc}" -Wall -Wextra -Werror -Ibuild/dist/ffmpeg/include "${cflags[@]}" tests/native-audio-encoders.c "$library" build/dist/ffmpeg/lib/libavutil.a "${ldflags[@]}" -o build/verification/audio-check
