@@ -44,6 +44,7 @@ list(APPEND FFMPEG_EXTRA_CONFIGURE
         --enable-static
         --enable-avcodec
         --enable-avutil
+        --enable-encoder=ac3,eac3
         --enable-bsfs  # ensure config.h will have CONFIG_CBS_ flags
         --enable-swscale
 )
